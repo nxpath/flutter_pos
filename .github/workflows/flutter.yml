@@ -33,30 +33,18 @@ jobs:
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
           sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-
-      # Add Android tools to PATH permanently for next steps
       - name: Add Android tools to PATH
-        run: echo "$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-
-      # Install FlutterFire CLI
-      - name: Install FlutterFire CLI
-        run: |
-          dart pub global activate flutterfire_cli
-          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+        run: echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
 
       # Install Flutter dependencies
       - name: Flutter pub get
         run: flutter pub get
 
-      # Setup Firebase google-services.json
+      # Copy google-services.json from secret
       - name: Setup Firebase config
         run: |
           mkdir -p android/app
-          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
-
-      # Generate firebase_options.dart
-      - name: Generate Firebase Options
-        run: flutterfire configure --project=flutterpos-68386 --out=lib/firebase_options.dart --platforms=android
+          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > android/app/google-services.json
 
       # Build APK release
       - name: Build APK Release
