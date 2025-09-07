@@ -56,7 +56,7 @@ jobs:
 
       # Generate firebase_options.dart
       - name: Generate Firebase Options
-        run: flutterfire configure --project=flutterpos-68386 --out=lib/firebase_options.dart --platforms=android --force
+        run: flutterfire configure --project=flutterpos-68386 --out=lib/firebase_options.dart --platforms=android
 
       # Build APK release
       - name: Build APK Release
