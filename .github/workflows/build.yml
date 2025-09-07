@@ -1,0 +1,55 @@
+name: Flutter Release Build
+
+on:
+  push:
+    branches:
+      - main  # ganti sesuai branch utama kamu
+  workflow_dispatch:
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    env:
+      FLUTTER_CHANNEL: stable
+      FLUTTER_VERSION: 3.35.3 #customize
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: ${{ env.FLUTTER_VERSION }}
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Load .env (optional)
+      run: |
+        if [ -f ".env" ]; then
+          echo ".env file exists"
+        else
+          echo "No .env file, creating dummy for build"
+          echo "GOOGLE_SERVER_CLIENT_ID=dummy.apps.googleusercontent.com" > .env
+        fi
+
+    - name: Run Flutter Analyze
+      run: flutter analyze
+
+    - name: Run Tests
+      run: flutter test
+
+    - name: Build APK release
+      run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
+
+    - name: Build AAB release
+      run: flutter build appbundle --release
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release-apk
+        path: build/app/outputs/flutter-apk/app-release.apk
