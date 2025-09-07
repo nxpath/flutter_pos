@@ -1,4 +1,4 @@
-name: Flutter APK Build
+name: Flutter POS Build
 
 on:
   push:
@@ -7,46 +7,52 @@ on:
     branches: ["main"]
 
 jobs:
-  build:
+  build-apk:
     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    env:
+      ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/platform-tools:${{ env.PATH }}
 
-      # Install Flutter stable
+    steps:
+      # Checkout repository
+      - uses: actions/checkout@v4
+
+      # Setup Flutter
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.35.3'
+          flutter-version: "3.35.3"
 
-      # Install Android SDK components
-      - name: Setup Android SDK
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          target: default
-          arch: x86_64
-          build-tools: 35.0.0
+      # Install Android SDK command line tools
+      - name: Install Android SDK
+        run: |
+          mkdir -p $ANDROID_HOME/cmdline-tools
+          curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+          unzip commandlinetools.zip -d $ANDROID_HOME/cmdline-tools
+          mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
+          sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-36" "build-tools;36.0.0"
 
-      # Accept Android licenses
-      - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses
-
-      # Get dependencies
-      - name: Install Flutter dependencies
+      # Get Flutter dependencies
+      - name: Flutter pub get
         run: flutter pub get
 
-      # Optional: Run analyzer
-      - name: Analyze code
-        run: flutter analyze
+      # Copy google-services.json
+      - name: Setup Firebase config
+        run: |
+          mkdir -p android/app
+          echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
+
+      # Generate firebase_options.dart
+      - name: Generate Firebase Options
+        run: flutterfire configure --project=flutterpos-68386 --out=lib/firebase_options.dart --platforms=android --force
 
       # Build APK release
-      - name: Build APK
-        run: flutter build apk --release
+      - name: Build APK Release
+        run: flutter build apk --release --no-sound-null-safety
 
       # Upload APK as artifact
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: flutter_pos_apk
           path: build/app/outputs/flutter-apk/app-release.apk
