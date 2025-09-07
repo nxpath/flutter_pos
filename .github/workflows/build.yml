@@ -3,7 +3,7 @@ name: Flutter Release Build
 on:
   push:
     branches:
-      - main  # ganti sesuai branch utama kamu
+      - main  # 
   workflow_dispatch:
 
 jobs:
@@ -27,14 +27,9 @@ jobs:
     - name: Install dependencies
       run: flutter pub get
 
-    - name: Load .env (optional)
-      run: |
-        if [ -f ".env" ]; then
-          echo ".env file exists"
-        else
-          echo "No .env file, creating dummy for build"
-          echo "GOOGLE_SERVER_CLIENT_ID=dummy.apps.googleusercontent.com" > .env
-        fi
+    - name: Setup .env
+      run: | 
+       echo "GOOGLE_SERVER_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" > .env
 
     - name: Run Flutter Analyze
       run: flutter analyze
