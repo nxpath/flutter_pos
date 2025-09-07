@@ -15,7 +15,7 @@ jobs:
       FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable
 
     steps:
-      # Checkout repo
+      # Checkout repository
       - uses: actions/checkout@v4
 
       # Setup Flutter
@@ -33,10 +33,18 @@ jobs:
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
           sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-      - name: Add Android tools to PATH
-        run: echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
 
-      # Flutter dependencies
+      # Add Android tools to PATH permanently for next steps
+      - name: Add Android tools to PATH
+        run: echo "$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+
+      # Install FlutterFire CLI
+      - name: Install FlutterFire CLI
+        run: |
+          dart pub global activate flutterfire_cli
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      # Install Flutter dependencies
       - name: Flutter pub get
         run: flutter pub get
 
