@@ -1,4 +1,4 @@
-name: Flutter POS Build
+name: Build Flutter APK
 
 on:
   push:
@@ -12,9 +12,10 @@ jobs:
 
     env:
       ANDROID_HOME: ${{ github.workspace }}/android-sdk
+      FLUTTER_ROOT: /opt/hostedtoolcache/flutter/stable
 
     steps:
-      # Checkout repository
+      # Checkout repo
       - uses: actions/checkout@v4
 
       # Setup Flutter
@@ -29,18 +30,17 @@ jobs:
           curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
           unzip -q commandlinetools.zip -d $ANDROID_HOME/cmdline-tools
           mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
           sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-36" "build-tools;36.0.0"
-
-      # Set PATH for Android tools
-      - name: Set Android PATH
+      - name: Add Android tools to PATH
         run: echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
 
-      # Get Flutter dependencies
+      # Flutter dependencies
       - name: Flutter pub get
         run: flutter pub get
 
-      # Copy google-services.json from GitHub Secret
+      # Setup Firebase google-services.json
       - name: Setup Firebase config
         run: |
           mkdir -p android/app
@@ -54,7 +54,7 @@ jobs:
       - name: Build APK Release
         run: flutter build apk --release --no-sound-null-safety
 
-      # Upload APK as artifact
+      # Upload APK artifact
       - uses: actions/upload-artifact@v4
         with:
           name: flutter_pos_apk
