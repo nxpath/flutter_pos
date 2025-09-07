@@ -37,7 +37,7 @@ jobs:
       - name: Add Android tools to PATH
         run: echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
 
-      # Flutter dependencies
+      # Get Flutter dependencies
       - name: Flutter pub get
         run: flutter pub get
 
@@ -47,38 +47,19 @@ jobs:
           mkdir -p android/app
           echo '${{ secrets.GOOGLE_SERVICES_JSON }}' > android/app/google-services.json
 
-      # Generate firebase_options.dart safely
+      # Generate simple firebase_options.dart
       - name: Generate firebase_options.dart
         run: |
           mkdir -p lib
           cat > lib/firebase_options.dart << 'EOF'
-import 'package:firebase_core/firebase_core.dart';
-
 class DefaultFirebaseOptions {
-  static const FirebaseOptions currentPlatform = FirebaseOptions(
-    apiKey: "YOUR_API_KEY",
-    appId: "YOUR_APP_ID",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-  );
+  static const apiKey = "YOUR_API_KEY";
+  static const appId = "YOUR_APP_ID";
+  static const messagingSenderId = "YOUR_MESSAGING_SENDER_ID";
+  static const projectId = "YOUR_PROJECT_ID";
+  static const storageBucket = "YOUR_STORAGE_BUCKET";
 }
 EOF
-
-          # Replace placeholders with values from GOOGLE_SERVICES_JSON
-          echo "${{ secrets.GOOGLE_SERVICES_JSON }}" > temp.json
-          API_KEY=$(jq -r '.client[0].api_key[0].current_key' temp.json)
-          APP_ID=$(jq -r '.client[0].client_info.mobilesdk_app_id' temp.json)
-          MSG_ID=$(jq -r '.project_info.project_number' temp.json)
-          PROJ_ID=$(jq -r '.project_info.project_id' temp.json)
-          STORAGE=$(jq -r '.project_info.storage_bucket' temp.json)
-
-          sed -i "s/YOUR_API_KEY/$API_KEY/" lib/firebase_options.dart
-          sed -i "s/YOUR_APP_ID/$APP_ID/" lib/firebase_options.dart
-          sed -i "s/YOUR_MESSAGING_SENDER_ID/$MSG_ID/" lib/firebase_options.dart
-          sed -i "s/YOUR_PROJECT_ID/$PROJ_ID/" lib/firebase_options.dart
-          sed -i "s/YOUR_STORAGE_BUCKET/$STORAGE/" lib/firebase_options.dart
-          rm temp.json
 
       # Build APK release
       - name: Build APK Release
