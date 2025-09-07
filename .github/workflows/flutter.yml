@@ -12,7 +12,6 @@ jobs:
 
     env:
       ANDROID_HOME: ${{ github.workspace }}/android-sdk
-      PATH: ${{ github.workspace }}/android-sdk/cmdline-tools/latest/bin:${{ github.workspace }}/android-sdk/platform-tools:${{ env.PATH }}
 
     steps:
       # Checkout repository
@@ -28,16 +27,20 @@ jobs:
         run: |
           mkdir -p $ANDROID_HOME/cmdline-tools
           curl -o commandlinetools.zip https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-          unzip commandlinetools.zip -d $ANDROID_HOME/cmdline-tools
+          unzip -q commandlinetools.zip -d $ANDROID_HOME/cmdline-tools
           mv $ANDROID_HOME/cmdline-tools/cmdline-tools $ANDROID_HOME/cmdline-tools/latest
           yes | sdkmanager --sdk_root=$ANDROID_HOME --licenses
           sdkmanager --sdk_root=$ANDROID_HOME "platform-tools" "platforms;android-36" "build-tools;36.0.0"
+
+      # Set PATH for Android tools
+      - name: Set Android PATH
+        run: echo "PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH" >> $GITHUB_ENV
 
       # Get Flutter dependencies
       - name: Flutter pub get
         run: flutter pub get
 
-      # Copy google-services.json
+      # Copy google-services.json from GitHub Secret
       - name: Setup Firebase config
         run: |
           mkdir -p android/app
