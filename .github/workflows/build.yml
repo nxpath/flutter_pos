@@ -42,6 +42,12 @@ jobs:
     - name: Check google-services.json
       run: cat android/app/google-services.json
 
+    - name: Debug google-services.json
+      run: |
+       ls -lh android/app/google-services.json
+       head -n 20 android/app/google-services.json
+       jq . android/app/google-services.json
+    
     - name: Build APK release
       run: flutter build apk --release --target-platform android-arm,android-arm64,android-x64
 
