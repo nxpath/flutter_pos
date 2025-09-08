@@ -1,7 +1,7 @@
 import '../errors/errors.dart';
 
-abstract class UseCase<Result, Params> {
-  Future<Result> call(Params params);
+abstract class UseCase<Output, Params> {
+  Future<Output> call(Params params);
 }
 
 class Result<T> {
