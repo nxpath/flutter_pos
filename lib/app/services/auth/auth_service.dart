@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -7,7 +5,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../../core/auth/auth_base.dart';
 import '../../../core/errors/errors.dart';
 import '../../../core/usecase/usecase.dart';
-import '../../../firebase_options.dart';
 
 class AuthService implements AuthBase {
   AuthService({
@@ -37,7 +34,6 @@ class AuthService implements AuthBase {
   @override
   Future<Result<UserCredential>> signIn() async {
     await _googleSignIn.initialize(
-      clientId: Platform.isIOS ? DefaultFirebaseOptions.ios.iosClientId : null,
       serverClientId: dotenv.env['GOOGLE_SERVER_CLIENT_ID'],
     );
 
